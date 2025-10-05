@@ -51,10 +51,23 @@ COPY Packet_Tracer822_amd64_signed.deb /tmp/
 # -----------------------------
 # Install Packet Tracer and HUB
 #
-RUN apt update && apt install -y qtbase5-dev
+RUN apt update && apt install -y qtbase5-dev wget
 RUN echo "PacketTracer PacketTracer_822_amd64/accept-eula boolean true" | debconf-set-selections
 RUN apt update && apt install -y /tmp/Packet_Tracer822_amd64_signed.deb
 
+# Install firefox debian package
+RUN install -d -m 0755 /etc/apt/keyrings
+RUN wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
+RUN echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
+RUN echo '\n\
+Package: *\n\
+Pin: origin packages.mozilla.org\n\
+Pin-Priority: 1000\n\
+\n\
+Package: firefox*\n\
+Pin: release o=Ubuntu\n\
+Pin-Priority: -1\n' | sudo tee /etc/apt/preferences.d/mozilla
+RUN apt update && apt purge -y firefox && apt install -y firefox
 # -----------------------------
 # Final working directory
 WORKDIR /home/dev
