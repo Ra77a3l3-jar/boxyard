@@ -1,0 +1,3 @@
+#/bin/bash
+xhost +local:
+docker run -it -v /home/raffaele/Containers/packet-tracer/configs:/srv/configs  --name packet-tracer   --env DISPLAY=$DISPLAY   --volume /tmp/.X11-unix:/tmp/.X11-unix   --privileged   packet-tracer:ubuntu22

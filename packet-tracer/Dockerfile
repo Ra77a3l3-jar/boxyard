@@ -13,7 +13,7 @@ RUN apt update && apt install -y --no-install-recommends \
     sudo curl wget git zsh locales x11-apps \
     build-essential pkg-config libssl-dev software-properties-common \
     dialog xdg-utils gtk-update-icon-cache \
-    libnss3 libxss1 libxslt1.1 libxcb-xinerama0-dev gnome qtbase5-dev \
+    libnss3 libxss1 libxslt1.1 libxcb-xinerama0-dev gnome \
     && locale-gen en_US.UTF-8 \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
@@ -50,8 +50,10 @@ RUN apt update && apt install -y software-properties-common \
 COPY Packet_Tracer822_amd64_signed.deb /tmp/
 # -----------------------------
 # Install Packet Tracer and HUB
-RUN apt update #\
-    && apt install -y /tmp/Packet_Tracer822_amd64_signed.deb
+#
+RUN apt update && apt install -y qtbase5-dev
+RUN echo "PacketTracer PacketTracer_822_amd64/accept-eula boolean true" | debconf-set-selections
+RUN apt update && apt install -y /tmp/Packet_Tracer822_amd64_signed.deb
 
 # -----------------------------
 # Final working directory

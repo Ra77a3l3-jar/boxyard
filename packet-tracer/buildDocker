@@ -1,0 +1,6 @@
+#/bin/bash
+
+docker stop packet-tracer
+docker rm packet-tracer
+docker rmi -f packet-tracer:ubuntu22
+docker build -t packet-tracer:ubuntu22 .
