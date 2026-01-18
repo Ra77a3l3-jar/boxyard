@@ -14,7 +14,7 @@ RUN apt update && apt install -y --no-install-recommends \
     build-essential pkg-config libssl-dev software-properties-common \
     dialog xdg-utils gtk-update-icon-cache \
     libnss3 libxss1 libxslt1.1 libxcb-xinerama0-dev \
-    neovim \
+    fzf ripgrep neovim \
     && locale-gen en_US.UTF-8 \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
@@ -45,14 +45,14 @@ RUN wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc |
     && apt clean && rm -rf /var/lib/apt/lists/*
 
 # -----------------------------
-# Install zoxide
-RUN curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+# Install zoxide as root to /usr/local/bin
+RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh -s -- --bin-dir /usr/local/bin
 
 USER dev
 
 # -----------------------------
-# Add pixi to PATH
-ENV PATH="/home/dev/.pixi/bin:${PATH}"
+# Add pixi and zoxide to PATH
+ENV PATH="/home/dev/.pixi/bin:/usr/local/bin:${PATH}"
 
 # -----------------------------
 # Copy setup script
