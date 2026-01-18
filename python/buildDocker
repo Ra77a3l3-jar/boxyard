@@ -3,4 +3,4 @@
 docker stop python-dev
 docker rm python-dev
 docker rmi -f python-dev:ubuntu22
-docker build -t python-dev:ubuntu22 .
+docker build -t python-dev:ubuntu22 --build-arg DOCKER_USER=$(whoami) .

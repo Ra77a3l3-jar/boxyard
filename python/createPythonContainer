@@ -1,3 +1,16 @@
 #/bin/bash
 xhost +local:
-docker run -it -v /home/raffaele/Python:/srv/python  --name python-dev   --env DISPLAY=$DISPLAY   --volume /tmp/.X11-unix:/tmp/.X11-unix   --privileged   python-dev:ubuntu22
+export MYUID=$(id -u)
+export MYGID=$(id -g)
+docker run -it --user ${MYUID}:${MYGID} \
+	--workdir="/home/$USER" \
+    --volume="/etc/group:/etc/group:ro" \
+    --volume="/etc/passwd:/etc/passwd:ro" \
+	-v /home/raffaele/Python:/srv/python \
+	--name python-dev \
+	--env DISPLAY=$DISPLAY \
+	--volume /tmp/.X11-unix:/tmp/.X11-unix \
+	--device /dev/video0:/dev/video0 \
+	--device /dev/video0:/dev/video1 \
+	--device /dev/video0:/dev/media0 \
+	python-dev:ubuntu22

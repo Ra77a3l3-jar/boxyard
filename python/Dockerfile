@@ -2,10 +2,11 @@
 # Base image
 FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
+ARG DOCKER_USER=dev
 
 # -----------------------------
 # Set working directory
-WORKDIR /home/dev
+WORKDIR /home/$DOCKER_USER
 ENV TZ=Europe/Rome
 # -----------------------------
 # Install essential packages
@@ -14,21 +15,21 @@ RUN apt update && apt install -y --no-install-recommends \
     build-essential pkg-config libssl-dev software-properties-common \
     dialog xdg-utils gtk-update-icon-cache \
     libnss3 libxss1 libxslt1.1 libxcb-xinerama0-dev \
-    fzf ripgrep neovim \
+    fzf ripgrep neovim v4l-utils \
     && locale-gen en_US.UTF-8 \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
 # -----------------------------
 # Create user and group
-RUN useradd -m -s /usr/bin/fish dev \
-    && echo "dev ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
-    && chown -R dev:dev /home/dev
+RUN useradd -m -s /usr/bin/fish $DOCKER_USER \
+    && echo "$DOCKER_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+    && chown -R $DOCKER_USER:$DOCKER_USER /home/$DOCKER_USER
 
-WORKDIR /home/dev
+WORKDIR /home/$DOCKER_USER
 
 # -----------------------------
 # Switch to dev user
-USER dev
+USER $DOCKER_USER
 
 # -----------------------------
 # Install pixi
@@ -48,22 +49,22 @@ RUN wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc |
 # Install zoxide as root to /usr/local/bin
 RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh -s -- --bin-dir /usr/local/bin
 
-USER dev
+USER $DOCKER_USER
 
 # -----------------------------
 # Add pixi and zoxide to PATH
-ENV PATH="/home/dev/.pixi/bin:/usr/local/bin:${PATH}"
+ENV PATH="/home/$DOCKER_USER/.pixi/bin:/usr/local/bin:${PATH}"
 
 # -----------------------------
 # Copy setup script
-COPY --chown=dev:dev setup_fish.sh /home/dev/setup_fish.sh
-RUN chmod +x /home/dev/setup_fish.sh
+COPY --chown=$DOCKER_USER:$DOCKER_USER setup_fish.sh /home/$DOCKER_USER/setup_fish.sh
+RUN chmod +x /home/$DOCKER_USER/setup_fish.sh
 
 # -----------------------------
 # Final working directory
-USER dev
-WORKDIR /home/dev
+USER $DOCKER_USER
+WORKDIR /home/$DOCKER_USER
 
 # -----------------------------
 # Setup fish config symlink at runtime
-CMD ["/home/dev/setup_fish.sh"]
+CMD ["./setup_fish.sh"]
