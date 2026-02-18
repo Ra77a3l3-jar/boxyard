@@ -1,6 +1,6 @@
 # -----------------------------
 # Base image
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 # -----------------------------
@@ -9,65 +9,40 @@ WORKDIR /home/dev
 ENV TZ=Europe/Rome
 # -----------------------------
 # Install essential packages
-RUN apt update && apt install -y --no-install-recommends \
-    sudo curl wget git zsh locales x11-apps \
-    build-essential pkg-config libssl-dev software-properties-common \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    sudo curl wget locales x11-apps \
+    build-essential pkg-config libssl-dev \
     dialog xdg-utils gtk-update-icon-cache \
-    libnss3 libxss1 libxslt1.1 libxcb-xinerama0-dev gnome \
+    # Core Packet Tracer System Libs
+    fuse libfuse2t64 libnss3 libxss1 libxslt1.1 libxcb-xinerama0 \
+    libasound2t64 libpulse0 \
+    libgl1 libopengl0 libglib2.0-bin \
+    libxtst6 libxrender1 libxi6 \
+    qtbase5-dev libqt5multimedia5 libqt5xml5 libqt5script5 libqt5scripttools5 libqt5sql5 \
+    libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+    libxcb-render-util0 libxcb-xfixes0 libxcb-shape0 libxcb-cursor0 \
     && locale-gen en_US.UTF-8 \
-    && apt clean && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # -----------------------------
-# Create user and group
+# Create user and group (Running as root)
 RUN groupadd -f wireshark \
-    && useradd -m -s /usr/bin/zsh dev \
+    && useradd -m -s /bin/bash dev \
     && echo "dev ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
     && usermod -aG wireshark dev \
     && chown -R dev:dev /home/dev
 
-WORKDIR /home/dev
+# -----------------------------
+# Install Packet Tracer (Running as root)
+COPY CiscoPacketTracer_900_Ubuntu_64bit.deb /tmp/
+
+# Accept EULA and Install
+RUN echo "packettracer packettracer/accept-eula boolean true" | debconf-set-selections \
+    && apt-get update \
+    && apt-get install -y /tmp/CiscoPacketTracer_900_Ubuntu_64bit.deb \
+    && rm /tmp/CiscoPacketTracer_900_Ubuntu_64bit.deb
 
 # -----------------------------
-# Switch to dev user
+# Switch to dev user ONLY at the end
 USER dev
-
-# -----------------------------
-# Set aliases
-RUN echo 'alias lg="eza --icons -l --git"' >> ~/.bashrc \
-    && echo 'alias lt="eza --icons -l --tree --git"' >> ~/.bashrc
-
-# -----------------------------
-# Install Helix editor via PPA
-USER root
-RUN apt update && apt install -y software-properties-common \
-    && add-apt-repository -y ppa:maveonair/helix-editor \
-    && apt update \
-    && apt install -y helix \
-    && apt clean && rm -rf /var/lib/apt/lists/*
-
-# -----------------------------
-# Copy local .deb files
-COPY Packet_Tracer822_amd64_signed.deb /tmp/
-# -----------------------------
-# Install Packet Tracer and HUB
-#
-RUN apt update && apt install -y qtbase5-dev wget
-RUN echo "PacketTracer PacketTracer_822_amd64/accept-eula boolean true" | debconf-set-selections
-RUN apt update && apt install -y /tmp/Packet_Tracer822_amd64_signed.deb
-
-# Install firefox debian package
-RUN install -d -m 0755 /etc/apt/keyrings
-RUN wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-RUN echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
-RUN echo '\n\
-Package: *\n\
-Pin: origin packages.mozilla.org\n\
-Pin-Priority: 1000\n\
-\n\
-Package: firefox*\n\
-Pin: release o=Ubuntu\n\
-Pin-Priority: -1\n' | sudo tee /etc/apt/preferences.d/mozilla
-RUN apt update && apt purge -y firefox && apt install -y firefox
-# -----------------------------
-# Final working directory
 WORKDIR /home/dev
