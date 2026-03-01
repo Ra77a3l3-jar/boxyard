@@ -10,7 +10,7 @@ ENV TZ=Europe/Rome
 # -----------------------------
 # Install essential packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    sudo curl wget locales x11-apps \
+    sudo curl wget locales x11-apps ca-certificates \
     build-essential pkg-config libssl-dev \
     dialog xdg-utils gtk-update-icon-cache \
     # Core Packet Tracer System Libs
